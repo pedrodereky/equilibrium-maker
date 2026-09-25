@@ -10,33 +10,74 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ComoJogarRouteImport } from './routes/como-jogar'
+import { Route as FasesRouteImport } from './routes/fases'
+import { Route as RecordesRouteImport } from './routes/recordes'
+import { Route as JogoFaseIdRouteImport } from './routes/jogo.$faseId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComoJogarRoute = ComoJogarRouteImport.update({
+  id: '/como-jogar',
+  path: '/como-jogar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FasesRoute = FasesRouteImport.update({
+  id: '/fases',
+  path: '/fases',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecordesRoute = RecordesRouteImport.update({
+  id: '/recordes',
+  path: '/recordes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JogoFaseIdRoute = JogoFaseIdRouteImport.update({
+  id: '/jogo/$faseId',
+  path: '/jogo/$faseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/como-jogar': typeof ComoJogarRoute
+  '/fases': typeof FasesRoute
+  '/recordes': typeof RecordesRoute
+  '/jogo/$faseId': typeof JogoFaseIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/como-jogar': typeof ComoJogarRoute
+  '/fases': typeof FasesRoute
+  '/recordes': typeof RecordesRoute
+  '/jogo/$faseId': typeof JogoFaseIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/como-jogar': typeof ComoJogarRoute
+  '/fases': typeof FasesRoute
+  '/recordes': typeof RecordesRoute
+  '/jogo/$faseId': typeof JogoFaseIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/como-jogar' | '/fases' | '/recordes' | '/jogo/$faseId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/como-jogar' | '/fases' | '/recordes' | '/jogo/$faseId'
+  id:
+    '__root__' | '/' | '/como-jogar' | '/fases' | '/recordes' | '/jogo/$faseId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ComoJogarRoute: typeof ComoJogarRoute
+  FasesRoute: typeof FasesRoute
+  RecordesRoute: typeof RecordesRoute
+  JogoFaseIdRoute: typeof JogoFaseIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +89,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/como-jogar': {
+      id: '/como-jogar'
+      path: '/como-jogar'
+      fullPath: '/como-jogar'
+      preLoaderRoute: typeof ComoJogarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fases': {
+      id: '/fases'
+      path: '/fases'
+      fullPath: '/fases'
+      preLoaderRoute: typeof FasesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recordes': {
+      id: '/recordes'
+      path: '/recordes'
+      fullPath: '/recordes'
+      preLoaderRoute: typeof RecordesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jogo/$faseId': {
+      id: '/jogo/$faseId'
+      path: '/jogo/$faseId'
+      fullPath: '/jogo/$faseId'
+      preLoaderRoute: typeof JogoFaseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ComoJogarRoute: ComoJogarRoute,
+  FasesRoute: FasesRoute,
+  RecordesRoute: RecordesRoute,
+  JogoFaseIdRoute: JogoFaseIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
