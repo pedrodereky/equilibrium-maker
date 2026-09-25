@@ -59,6 +59,17 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Paleta do jogo Equilíbrium. FB = fator de balanceamento. */
+  --color-fb-zero: var(--fb-zero);
+  --color-fb-um: var(--fb-um);
+  --color-fb-dois: var(--fb-dois);
+  --color-fb-oculto: var(--fb-oculto);
+  --color-critico: var(--critico);
+  --color-aresta: var(--aresta);
+  --color-painel: var(--painel);
+  --color-painel-borda: var(--painel-borda);
+  --color-destaque: var(--destaque);
 }
 
 :root {
@@ -98,9 +109,9 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
+  --background: oklch(0.16 0.038 264.5);
+  --foreground: oklch(0.985 0.005 247.858);
+  --card: oklch(0.225 0.042 265.2);
   --card-foreground: oklch(0.984 0.003 247.858);
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.984 0.003 247.858);
@@ -130,6 +141,63 @@
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+/*
+ * Tokens do jogo. As cores de FB nunca são o único sinal: o número do FB
+ * aparece sempre ao lado, para quem não distingue as cores e para projetor.
+ */
+:root,
+.dark {
+  --fb-zero: oklch(0.75 0.17 152);
+  --fb-um: oklch(0.82 0.16 86);
+  --fb-dois: oklch(0.65 0.23 25);
+  --fb-oculto: oklch(0.68 0.035 255);
+  --critico: oklch(0.78 0.16 205);
+  --aresta: oklch(0.48 0.045 262);
+  --painel: oklch(0.225 0.042 265.2);
+  --painel-borda: oklch(0.36 0.045 263);
+  --destaque: oklch(0.72 0.19 300);
+}
+
+@layer utilities {
+  /* Tremor da árvore quando a estrutura fica instável. */
+  @keyframes equilibrium-tremor {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    15% {
+      transform: translateX(-7px) rotate(-0.5deg);
+    }
+    35% {
+      transform: translateX(6px) rotate(0.5deg);
+    }
+    55% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(4px);
+    }
+  }
+
+  .animate-tremor {
+    animation: equilibrium-tremor 0.55s ease-in-out;
+  }
+
+  @keyframes equilibrium-pulso {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+
+  .animate-pulso-alerta {
+    animation: equilibrium-pulso 1.1s ease-in-out infinite;
+  }
 }
 
 @layer base {
