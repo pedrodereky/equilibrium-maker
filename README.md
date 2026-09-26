@@ -27,6 +27,7 @@ npm run lint     # ESLint + Prettier
 | `src/hooks/useEquilibrium.ts`      | Máquina de estados da partida: fila de chaves, pontuação, combo, estabilidade, cronômetro.                                                                                                                                                                                                     |
 | `src/hooks/useEquilibrium.test.ts` | Testes das regras do jogo (pontuação, erros que não alteram a árvore, derrota, "Revelar FB").                                                                                                                                                                                                  |
 | `src/data/levels.ts`               | As quatro fases e o sorteio validado da sequência mista.                                                                                                                                                                                                                                       |
+| `src/lib/som.ts`                   | Efeitos sonoros sintetizados com a Web Audio API, sem arquivos de áudio.                                                                                                                                                                                                                       |
 | `src/components/jogo/`             | Árvore em SVG, HUD, botões de rotação, painéis e telas de resultado.                                                                                                                                                                                                                           |
 | `src/routes/`                      | Menu, seleção de fase, jogo, "Como jogar" e recordes.                                                                                                                                                                                                                                          |
 
@@ -50,7 +51,12 @@ npm run lint     # ESLint + Prettier
 3. **Misto** — 12 a 15 chaves sorteadas e validadas com `avl.ts` (mínimo de 5 correções e os 4 casos), FB oculto, "Revelar FB" custa 50 pontos, 3 de estabilidade.
 4. **Contra o tempo** — igual à fase 3, com 20 segundos por desbalanceamento e bônus de tempo.
 
-Recordes e fases desbloqueadas ficam no `localStorage`. Sem backend nesta versão.
+Recordes, fases desbloqueadas e a preferência de som ficam no `localStorage`. Sem backend
+nesta versão.
+
+Cada etapa da rodada tem um efeito sonoro próprio (tique da descida, alarme de
+desbalanceamento, varredura da rotação, fanfarra de vitória). O botão no topo da tela de jogo
+liga e desliga o som, pelo clique ou pelo atalho `M`.
 
 ## Fora do escopo desta versão
 

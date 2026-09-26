@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { ChevronLeft, Eye, Lightbulb, RotateCcw } from "lucide-react";
 
 import { ArvoreSVG } from "@/components/jogo/ArvoreSVG";
+import { BotaoSom } from "@/components/jogo/BotaoSom";
 import { BotoesRotacao } from "@/components/jogo/BotoesRotacao";
 import { FilaDeChegada } from "@/components/jogo/FilaDeChegada";
 import { PainelHud } from "@/components/jogo/PainelHud";
@@ -98,10 +99,13 @@ export function TelaDeJogo({ level }: TelaDeJogoProps) {
               <p className="text-xs text-muted-foreground">{level.subtitulo}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={reiniciar} className="gap-1.5">
-            <RotateCcw className="size-4" aria-hidden />
-            Reiniciar fase
-          </Button>
+          <div className="flex items-center gap-2">
+            <BotaoSom />
+            <Button variant="outline" size="sm" onClick={reiniciar} className="gap-1.5">
+              <RotateCcw className="size-4" aria-hidden />
+              Reiniciar fase
+            </Button>
+          </div>
         </header>
 
         <PainelHud

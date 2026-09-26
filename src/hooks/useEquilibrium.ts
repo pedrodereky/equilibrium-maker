@@ -23,6 +23,7 @@ import {
   type RotationCase,
 } from "@/lib/avl";
 import { sequenciaDaFase, type Level } from "@/data/levels";
+import { tocar, type EfeitoSonoro } from "@/lib/som";
 
 export const PONTOS_NO_CRITICO = 100;
 export const PONTOS_ROTACAO = 100;
@@ -81,7 +82,10 @@ export interface GameState {
   readonly tremor: number;
   readonly tempoRestante: number | null;
   readonly desmoronou: boolean;
+  /** Efeito sonoro que a última transição pede. O reducer só o declara; quem toca é o hook. */
+  readonly som: { readonly id: number; readonly efeito: EfeitoSonoro } | null;
   readonly proximoAvisoId: number;
+  readonly proximoSomId: number;
 }
 
 export type GameAction =
@@ -126,7 +130,9 @@ export function criarEstadoInicial(level: Level): GameState {
     tremor: 0,
     tempoRestante: null,
     desmoronou: false,
+    som: null,
     proximoAvisoId: 1,
+    proximoSomId: 1,
   };
 }
 
@@ -142,6 +148,10 @@ function comAviso(
   };
 }
 
+function comSom(state: GameState, efeito: EfeitoSonoro): Partial<GameState> {
+  return { som: { id: state.proximoSomId, efeito }, proximoSomId: state.proximoSomId + 1 };
+}
+
 /** Multiplicador vigente depois de somar mais um acerto ao combo. */
 function multiplicador(comboDepois: number): number {
   return comboDepois >= COMBO_PARA_MULTIPLICAR ? MULTIPLICADOR_DE_COMBO : 1;
@@ -153,6 +163,7 @@ function registrarErro(state: GameState, titulo: string, texto: string): GameSta
   const base: GameState = {
     ...state,
     ...comAviso(state, "erro", titulo, texto),
+    ...comSom(state, estabilidade > 0 ? "erro" : "derrota"),
     estabilidade,
     combo: 0,
     erros: state.erros + 1,
@@ -208,6 +219,7 @@ function confirmarInsercao(state: GameState): GameState {
         `Chave ${chave} inserida`,
         "Todos os nós continuam com FB em {-1, 0, +1}: a árvore segue AVL.",
       ),
+      ...comSom(state, acabou ? "vitoria" : "insercao"),
       noCritico: null,
       casoEsperado: null,
       noSelecionado: null,
@@ -228,6 +240,7 @@ function confirmarInsercao(state: GameState): GameState {
         ? `A chave ${chave} desequilibrou o nó ${noCritico}, já destacado. Escolha a rotação que o conserta.`
         : `A chave ${chave} desequilibrou a árvore. Clique no nó crítico — o mais profundo com |FB| = 2.`,
     ),
+    ...comSom(state, "instavel"),
     noCritico,
     casoEsperado,
     noSelecionado: destacado ? noCritico : null,
@@ -243,6 +256,7 @@ function finalizarCorrecao(state: GameState): GameState {
   const acabou = state.cursor >= state.sequencia.length;
   return {
     ...state,
+    ...(acabou ? comSom(state, "vitoria") : {}),
     etapasPendentes: [],
     totalEtapasRotacao: 0,
     noCritico: null,
@@ -279,6 +293,7 @@ export function reducer(state: GameState, action: GameAction): GameState {
             `Chave ${chave} repetida`,
             "A árvore só aceita chaves únicas, então esta foi descartada.",
           ),
+          ...comSom(state, "instavel"),
           cursor: state.cursor + 1,
           status: state.cursor + 1 >= state.sequencia.length ? "vitoria" : "preparando",
         };
@@ -300,7 +315,7 @@ export function reducer(state: GameState, action: GameAction): GameState {
     case "avancar-caminho": {
       if (state.status !== "descendo") return state;
       if (state.passoCaminho + 1 < state.caminho.length) {
-        return { ...state, passoCaminho: state.passoCaminho + 1 };
+        return { ...state, ...comSom(state, "comparacao"), passoCaminho: state.passoCaminho + 1 };
       }
       return confirmarInsercao(state);
     }
@@ -317,6 +332,7 @@ export function reducer(state: GameState, action: GameAction): GameState {
             `Nó crítico ${action.chave} identificado`,
             `É o nó mais profundo com |FB| = 2. Agora escolha a rotação. +${PONTOS_NO_CRITICO * multiplicador(combo)} pontos.`,
           ),
+          ...comSom(state, "acerto"),
           pontuacao: state.pontuacao + PONTOS_NO_CRITICO * multiplicador(combo),
           combo,
           melhorCombo: Math.max(state.melhorCombo, combo),
@@ -367,6 +383,7 @@ export function reducer(state: GameState, action: GameAction): GameState {
           `Caso ${casoEsperado} corrigido`,
           `${explainCase(arvore, noCritico)} +${ganho} pontos${bonusTempo > 0 ? ` (${bonusTempo} de bônus de tempo)` : ""}.`,
         ),
+        ...comSom(state, "rotacao"),
         arvore: primeira,
         etapasPendentes: etapas.slice(1),
         totalEtapasRotacao: etapas.length,
@@ -383,13 +400,19 @@ export function reducer(state: GameState, action: GameAction): GameState {
       if (state.status !== "rotacionando") return state;
       const [proxima, ...resto] = state.etapasPendentes;
       if (proxima === undefined) return finalizarCorrecao(state);
-      return { ...state, arvore: proxima, etapasPendentes: resto };
+      return { ...state, ...comSom(state, "rotacao"), arvore: proxima, etapasPendentes: resto };
     }
 
     case "tique": {
       if (state.tempoRestante === null) return state;
       if (state.tempoRestante > 1) {
-        return { ...state, tempoRestante: state.tempoRestante - 1 };
+        const restante = state.tempoRestante - 1;
+        // Tique audível só na contagem final, para não virar barulho de fundo.
+        return {
+          ...state,
+          ...(restante <= 5 ? comSom(state, "tempo") : {}),
+          tempoRestante: restante,
+        };
       }
       return registrarErro(
         state,
@@ -422,6 +445,7 @@ export function reducer(state: GameState, action: GameAction): GameState {
           "FB revelado",
           `−${custo} pontos. O fator de balanceamento fica visível até esta correção terminar.`,
         ),
+        ...comSom(state, "revelar"),
         pontuacao: state.pontuacao - custo,
         fbRevelado: true,
       };
@@ -487,6 +511,11 @@ export function useEquilibrium(level: Level): Equilibrium {
     }
     return undefined;
   }, [state.status, state.passoCaminho, state.cursor, state.etapasPendentes]);
+
+  // O reducer diz qual som a transição pede; aqui ele é tocado.
+  useEffect(() => {
+    if (state.som !== null) tocar(state.som.efeito);
+  }, [state.som]);
 
   // Cronômetro da fase 4.
   useEffect(() => {

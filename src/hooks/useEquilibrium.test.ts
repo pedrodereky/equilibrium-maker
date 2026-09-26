@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { criarEstadoInicial, reducer, type GameAction, type GameState } from "./useEquilibrium";
 import { FASE_1_SEQUENCIA, FASE_2_SEQUENCIA, getLevel, type Level } from "@/data/levels";
 import { preOrder, type RotationCase } from "@/lib/avl";
+import type { EfeitoSonoro } from "@/lib/som";
 
 function fase(id: number): Level {
   const level = getLevel(id);
@@ -250,5 +251,73 @@ describe("revelar FB", () => {
     const estado = novoJogo(fase(1), FASE_1_SEQUENCIA);
     expect(estado.fbRevelado).toBe(true);
     expect(reducer(estado, { type: "revelar-fb" })).toBe(estado);
+  });
+});
+
+describe("efeitos sonoros", () => {
+  const efeito = (state: GameState): EfeitoSonoro | null => state.som?.efeito ?? null;
+
+  it("toca um tique a cada comparação da descida", () => {
+    let estado = novoJogo(fase(1), FASE_1_SEQUENCIA);
+    estado = proximaChave(estado); // raiz: não há comparação
+    estado = reducer(estado, { type: "inserir" });
+    expect(estado.status).toBe("descendo");
+    estado = reducer(estado, { type: "avancar-caminho" });
+    // A última comparação já confirma a inserção, então este caminho de um nó
+    // só emite o som da chave assentando.
+    expect(efeito(estado)).toBe("insercao");
+  });
+
+  it("anuncia o desbalanceamento, a rotação e cada etapa da dupla", () => {
+    let estado = novoJogo(fase(2), FASE_2_SEQUENCIA);
+    while (estado.status === "preparando") estado = proximaChave(estado);
+    expect(efeito(estado)).toBe("instavel");
+
+    estado = reducer(estado, { type: "clicar-no", chave: estado.noCritico as number });
+    expect(efeito(estado)).toBe("acerto");
+
+    estado = reducer(estado, { type: "escolher-rotacao", rotacao: "LR" });
+    expect(efeito(estado)).toBe("rotacao");
+    // Caso duplo: a segunda etapa toca de novo.
+    estado = reducer(estado, { type: "proxima-etapa-rotacao" });
+    expect(efeito(estado)).toBe("rotacao");
+  });
+
+  it("distingue erro de derrota", () => {
+    let estado = novoJogo(fase(2), FASE_2_SEQUENCIA);
+    while (estado.status === "preparando") estado = proximaChave(estado);
+    const critico = estado.noCritico as number;
+    const outro = preOrder(estado.arvore).find((k) => k !== critico) as number;
+
+    estado = reducer(estado, { type: "clicar-no", chave: outro });
+    expect(efeito(estado)).toBe("erro");
+
+    for (let i = 1; i < fase(2).estabilidade; i += 1) {
+      estado = reducer(estado, { type: "clicar-no", chave: outro });
+    }
+    expect(estado.status).toBe("derrota");
+    expect(efeito(estado)).toBe("derrota");
+  });
+
+  it("toca a fanfarra quando a última chave fecha a fase", () => {
+    const fim = jogarCertinho(novoJogo(fase(1), FASE_1_SEQUENCIA));
+    expect(fim.status).toBe("vitoria");
+    expect(efeito(fim)).toBe("vitoria");
+  });
+
+  it("o tique do cronômetro só aparece nos últimos 5 segundos", () => {
+    let estado = novoJogo(fase(4), FASE_2_SEQUENCIA);
+    while (estado.status === "preparando") estado = proximaChave(estado);
+    expect(estado.tempoRestante).toBe(20);
+
+    estado = reducer(estado, { type: "tique" });
+    expect(estado.tempoRestante).toBe(19);
+    expect(efeito(estado)).not.toBe("tempo");
+
+    while (estado.tempoRestante !== null && estado.tempoRestante > 5) {
+      estado = reducer(estado, { type: "tique" });
+    }
+    expect(estado.tempoRestante).toBe(5);
+    expect(efeito(estado)).toBe("tempo");
   });
 });
