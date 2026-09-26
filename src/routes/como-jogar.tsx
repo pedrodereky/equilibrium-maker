@@ -173,6 +173,11 @@ function ComoJogar() {
                 de novo.
               </li>
             </ol>
+            <p>
+              Cada etapa tem seu som: o tique da descida, o alarme do desbalanceamento, a varredura
+              da rotação. O botão no topo da tela de jogo liga e desliga os efeitos sonoros, pelo
+              clique ou pelo atalho <strong className="text-foreground">M</strong>.
+            </p>
           </Secao>
 
           <Secao titulo="6. Vitória e derrota">
