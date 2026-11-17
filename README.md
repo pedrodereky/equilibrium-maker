@@ -1,5 +1,7 @@
 # Equilíbrium
 
+[![CI](https://github.com/pedrodereky/equilibrium-maker/actions/workflows/ci.yml/badge.svg)](https://github.com/pedrodereky/equilibrium-maker/actions/workflows/ci.yml)
+
 Jogo educativo web sobre **Árvores AVL**, para a disciplina de Estruturas de Dados II
 (Ciência da Computação). Interface inteiramente em português do Brasil.
 
@@ -13,9 +15,9 @@ Errar demais faz a estrutura degenerar em lista encadeada (busca O(n)) e a parti
 ```sh
 npm i
 npm run dev      # servidor de desenvolvimento
-npm run test     # testes da lógica da AVL e das regras do jogo (Vitest)
+npm run test     # 52 testes da lógica da AVL e das regras do jogo (Vitest)
 npm run build    # build de produção
-npm run lint     # ESLint + Prettier
+npm run lint     # ESLint
 ```
 
 ## Estrutura
